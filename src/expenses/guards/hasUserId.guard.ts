@@ -12,6 +12,7 @@ export class HasUserIdGuard implements CanActivate {
 
     request.userId = userId
 
+    console.log(request.userId)
     return true;
   }
 }

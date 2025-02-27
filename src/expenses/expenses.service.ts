@@ -4,23 +4,31 @@ import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Expense } from './schema/expense.schema';
 import { isValidObjectId, Model } from 'mongoose';
-import { retry } from 'rxjs';
+import { UsersService } from 'src/users/users.service';
+import path from 'path';
+import { UsersModule } from 'src/users/users.module';
+import { ExpensesModule } from './expenses.module';
 
 @Injectable()
 export class ExpensesService {
-  constructor(@InjectModel("expense") private expenseModel: Model<Expense>){}
-  
-  async create(createExpenseDto: CreateExpenseDto, user: string) {
-    const newExpense = await this.expenseModel.create({...createExpenseDto, user})
+  constructor(@InjectModel(Expense.name) private expenseModel: Model<Expense>,
+  private usersService: UsersService
+){}
+
+  async create(createExpenseDto: CreateExpenseDto, userId: string) {
+    const user = await this.usersService.findOne(userId)
+    const newExpense = (await this.expenseModel.create({ ...createExpenseDto, user: userId }))
+    await this.usersService.addExpense(user._id, newExpense._id)
     return newExpense
   }
+  
 
   async findAll() {
-    return await this.expenseModel.find()
+    return await this.expenseModel.find().populate({path: "user", select: "email"})
   }
 
   async findOne(id: string) {
-    const expense = await this.expenseModel.findById(id)
+    const expense = await this.expenseModel.findById(id).populate({path: "user", select: "email"})
     if(!expense) throw new BadRequestException("not found")
     return expense
   }
@@ -32,10 +40,12 @@ export class ExpensesService {
     return expense
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId) {
     if(!isValidObjectId(id)) throw new BadRequestException("invalid id")
       const expense = await this.expenseModel.findByIdAndDelete(id)
       if(!expense) throw new BadRequestException("not found")
+      const user = await this.usersService.findOne(userId)
+      await this.usersService.deleteExpense(user._id, expense._id)
       return expense
   }
 }

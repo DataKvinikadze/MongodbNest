@@ -6,6 +6,7 @@ export class CreateExpenseDto {
   title: string;
 
   @IsNumber()
+  @IsNotEmpty()
   amount: number;
 
   @IsString()

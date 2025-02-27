@@ -6,14 +6,14 @@ import { HasUserIdGuard } from './guards/hasUserId.guard';
 import { request } from 'http';
 
 @Controller('expenses')
+@UseGuards(HasUserIdGuard)
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
   @Post()
-  @UseGuards(HasUserIdGuard)
   create(@Req() request, @Body() createExpenseDto: CreateExpenseDto) {
     const userId = request.userId
-    return this.expensesService.create(createExpenseDto, userId);
+    return this.expensesService.create(createExpenseDto,userId);
   }
 
   @Get()
@@ -32,7 +32,8 @@ export class ExpensesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.expensesService.remove(id);
+  remove(@Req() request, @Param('id') id: string) {
+    const userId = request.userId
+    return this.expensesService.remove(id, userId);
   }
 }

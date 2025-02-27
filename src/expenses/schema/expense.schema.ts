@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
+@Schema()
 export class Expense {
-  @Prop({ required: true })
+  @Prop({type: String, required: true })
   title: string;
 
   @Prop({ required: true, type: Number })
