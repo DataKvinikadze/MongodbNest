@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -6,15 +6,13 @@ import { Expense } from './schema/expense.schema';
 import { isValidObjectId, Model } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
 import path from 'path';
-import { UsersModule } from 'src/users/users.module';
-import { ExpensesModule } from './expenses.module';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
-export class ExpensesService {
+export class ExpensesService  {
   constructor(@InjectModel(Expense.name) private expenseModel: Model<Expense>,
   private usersService: UsersService
 ){}
-
   async create(createExpenseDto: CreateExpenseDto, userId: string) {
     const user = await this.usersService.findOne(userId)
     const newExpense = (await this.expenseModel.create({ ...createExpenseDto, user: userId }))
